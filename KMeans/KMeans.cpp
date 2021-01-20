@@ -1,6 +1,7 @@
 ﻿#include <opencv2/imgcodecs.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/opencv.hpp>
 
 #include <iostream>
 #include <stdio.h>
@@ -44,7 +45,7 @@ int main()
 	Width = img.cols;						//이미지 너비 설정
 	Height = img.rows;						//이미지 높이 설정
 	Pixels = Width * Height;				//이미지의 전체 pixel값 설정
-	Knum = 8;								//클러스터링 개수
+	Knum = 10;								//클러스터링 개수
 	SSD = new unsigned int [Knum + 1] {0};	//클러스터링 개수마다 오차제곱합
 
 	points.create(Pixels, 1, CV_32FC3);
@@ -89,18 +90,44 @@ int main()
 				SSD[k] += norm(points.at<Vec3f>(n) - centers.at<Vec3f>(labels.at<int>(n), 0));
 			}
 		}
+
+		// 그래프를 위해 값을 줄임
+		SSD[k] = sqrt(SSD[k]);
 	}
-	
-	// SSD (오차 제곱합) 구하기
-	for (int i = 1; i <= Knum; i++) {
-		cout << i << " : " << SSD[i] << endl;
+
+	// k - SSD 그래프
+	int width = 500, height = 500;
+	unsigned int maxValue = SSD[1] * 1.2;
+
+	Mat graph(width + 100, height + 100, CV_8UC3, cv::Scalar(255, 255, 255));
+
+	line(graph, Point(50, 50), Point(50, height + 50), Scalar::all(0), 1, 8, 0);
+	line(graph, Point(50, height + 50), Point(width + 50, height + 50), Scalar::all(0), 1, 8, 0);
+
+	Point _p(-1, -1);		// 직전 값
+	for (int i = 1; i <= Knum; i++)
+	{
+		Point p = Point(70 + ((width + 30) / Knum) * (i - 1), height + 50);
+
+		line(graph, p, p + Point(0, 5), Scalar::all(0), 1, 8, 0);
+		putText(graph, to_string(i), p + Point(0, 25), 2, 0.5, Scalar::all(0));
+
+		p -= Point(0, SSD[i] * height / maxValue);
+
+		circle(graph, p, 2, Scalar(255, 0, 0), CV_FILLED);
+
+		if (_p.x >= 0) line(graph, p, _p, Scalar(255, 0, 0), 1, 8, 0);
+
+		_p = p;
 	}
 
 	namedWindow("Input", WINDOW_AUTOSIZE);
 	namedWindow("Result");
+	namedWindow("Graph");
 
 	imshow("Input", img);
 	imshow("Result", res);
+	imshow("Graph", graph);
 
 	waitKey(0);
 
