@@ -26,7 +26,7 @@ Scalar colorTab[] =
 };
 
 Mat img, res, points, labels, centers;
-int Width, Height, Pixels, Knum;
+int Width, Height, Pixels, Knum = 10;
 
 unsigned int *SSD;
 
@@ -41,11 +41,13 @@ int main()
 		printf("Image load fail....\n\n");
 		return -1;
 	}
+
+	printf("비교할 최대 클러스터 개수 (빠른 속도를 위해 10 이하의 값 추천) : ");
+	scanf_s("%d", &Knum);					//클러스터링 개수						
 	
 	Width = img.cols;						//이미지 너비 설정
 	Height = img.rows;						//이미지 높이 설정
 	Pixels = Width * Height;				//이미지의 전체 pixel값 설정
-	Knum = 10;								//클러스터링 개수
 	SSD = new unsigned int [Knum + 1] {0};	//클러스터링 개수마다 오차제곱합
 
 	points.create(Pixels, 1, CV_32FC3);
@@ -80,6 +82,8 @@ int main()
 
 		// 그래프를 위해 값을 줄임
 		SSD[k] = sqrt(SSD[k]);
+
+		printf("No.%d completed\n", k);
 	}
 
 	// k - SSD 그래프
@@ -117,7 +121,9 @@ int main()
 		if (ratio < 0.5 || ratio > 1.5) answer = i;
 	}
 
-	// 이미지 클러스터링
+	printf("최적의 클러스터 개수 : %d\n", answer);
+
+	// 이미지 분할
 
 	kmeans(points, answer, labels,
 		TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 10, 1.9),
