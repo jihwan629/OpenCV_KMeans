@@ -121,6 +121,15 @@ int main()
 		_p = p;
 	}
 
+	// Elbow 구하기
+
+	int answer = Knum; // 최적의 클러스터 수
+	for (int i = 2; i < Knum; i++)
+	{
+		double ratio = (double)abs(SSD[i - 1] - SSD[i]) / ((double)abs(SSD[i - 1] - SSD[i + 1]) / 2);
+		if (ratio < 0.5 || ratio > 1.5) answer = i;
+	}
+
 	namedWindow("Input", WINDOW_AUTOSIZE);
 	namedWindow("Result");
 	namedWindow("Graph");
