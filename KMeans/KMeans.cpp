@@ -71,19 +71,6 @@ int main()
 			TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 10, 1.9),
 			3, KMEANS_RANDOM_CENTERS, centers);
 
-		for (int y = 0, n = 0; y < Height; y++) {
-			for (int x = 0; x < Width; x++, n++) {
-				//현재 픽셀의 label값을 받아온다.
-				int cIndex = labels.at<int>(n);
-				//받아온 label값에 대응되는 색상을 입힌다.
-				res.at<Vec4b>(y, x)[0] = colorTab[cIndex][0];
-				res.at<Vec4b>(y, x)[1] = colorTab[cIndex][1];
-				res.at<Vec4b>(y, x)[2] = colorTab[cIndex][2];
-			}
-		}
-
-		// Elbow 기법
-
 		// SSD (오차 제곱합) 구하기
 		for (int y = 0, n = 0; y < Height; y++) {
 			for (int x = 0; x < Width; x++, n++) {
@@ -104,7 +91,7 @@ int main()
 	line(graph, Point(50, 50), Point(50, height + 50), Scalar::all(0), 1, 8, 0);
 	line(graph, Point(50, height + 50), Point(width + 50, height + 50), Scalar::all(0), 1, 8, 0);
 
-	Point _p(-1, -1);		// 직전 값
+	Point _p(-1, -1); // 직전 값
 	for (int i = 1; i <= Knum; i++)
 	{
 		Point p = Point(70 + ((width + 30) / Knum) * (i - 1), height + 50);
@@ -121,13 +108,30 @@ int main()
 		_p = p;
 	}
 
-	// Elbow 구하기
+	// Elbow 기법
 
 	int answer = Knum; // 최적의 클러스터 수
 	for (int i = 2; i < Knum; i++)
 	{
 		double ratio = (double)abs(SSD[i - 1] - SSD[i]) / ((double)abs(SSD[i - 1] - SSD[i + 1]) / 2);
 		if (ratio < 0.5 || ratio > 1.5) answer = i;
+	}
+
+	// 이미지 클러스터링
+
+	kmeans(points, answer, labels,
+		TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 10, 1.9),
+		3, KMEANS_RANDOM_CENTERS, centers);
+
+	for (int y = 0, n = 0; y < Height; y++) {
+		for (int x = 0; x < Width; x++, n++) {
+			//현재 픽셀의 label값을 받아온다.
+			int cIndex = labels.at<int>(n);
+			//받아온 label값에 대응되는 색상을 입힌다.
+			res.at<Vec4b>(y, x)[0] = colorTab[cIndex][0];
+			res.at<Vec4b>(y, x)[1] = colorTab[cIndex][1];
+			res.at<Vec4b>(y, x)[2] = colorTab[cIndex][2];
+		}
 	}
 
 	namedWindow("Input", WINDOW_AUTOSIZE);
