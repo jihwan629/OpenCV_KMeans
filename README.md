@@ -1,4 +1,4 @@
-# OpenCV K-Means 구현 프로젝트
+# OpenCV K-Means 최적화 프로젝트
 
 
 <br>
